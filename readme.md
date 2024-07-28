@@ -67,7 +67,7 @@ Install the required Python packages using pip:
 
 ```bash
 pip install scapy tabulate colorama
-
+```
 
 ![NG Port Scanner](https://i.ibb.co/YhLHK1V/ngport.png)
 
