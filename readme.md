@@ -1,11 +1,9 @@
 
 # NG (Next Generation) Port Scan
 
-This script is a ngportscan that performs a variety of advanced scanning techniques to identify open ports and gather information about target hosts. It supports both IPv4 and IPv6, and includes features such as logging, multi-threading, and detailed scan results.
+Next Generation Port Scan is advanced scanner that identifies open ports and gather information about target hosts using TCP/IP stack and RFC designs to help us bypass firewalls and truly understand, if port is closed or open. It supports both IPv4 and IPv6, and includes features such as logging, multi-threading, and detailed scan results.
 
 ## Why This is a Next-Generation Port Scanner
-
-### Advanced Scanning Techniques
 
 This scanner incorporates cutting-edge scanning methods that go beyond traditional port scanning. It includes innovative techniques like:
 
@@ -15,7 +13,7 @@ This scanner incorporates cutting-edge scanning methods that go beyond tradition
 - **IPv6 Extension Header Scanning**: Uses IPv6 extension headers to identify network nodes that support IPv6.
 - **Flow Label Scanning (IPv6)**: Exploits IPv6 flow labels for advanced probing.
 - **Fragmented ICMP Scanning**: Sends fragmented ICMP packets to evade detection systems.
-- **Covert Channel Scanning**: Searches for covert communication channels within a network.
+- **Covert Channel Scanning**: Searches for covert communication channels within a network or public facing IP using built-in Windows, Linux packet sniffer libraries.
 
 ### Bypassing Filters
 
