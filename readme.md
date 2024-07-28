@@ -65,6 +65,10 @@ Traditional scanners often get blocked by firewalls and intrusion detection syst
 - **Detailed Logging**: Comprehensive logging helps in analyzing scan results and troubleshooting issues.
 - **Operating System Detection**: Identifies the operating system of the target, aiding in vulnerability assessments.
 
+### Vulners
+
+- **Banner grab and CVE Detection**: Using Vulners, you can get latest cves of the banner identified.
+
 ### Ease of Use
 
 - **Multi-Threaded**: Utilizes multi-threading to speed up the scanning process, making it more efficient.
