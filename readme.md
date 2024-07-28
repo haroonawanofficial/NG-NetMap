@@ -44,6 +44,39 @@ Traditional scanners often get blocked by firewalls and intrusion detection syst
 - **Linux Support**:  Utilizes built-in Linux packet sniffer libraries to identify the responses and create assumptions if port is open or closed of filtered.
 - **Mac Support**:  Utilizes built-in Mac packet sniffer libraries to identify the responses and create assumptions if port is open or closed of filtered.
 
+## List of Built-in Plugins Using TCP/IP RFCs
+
+- Inverse Mapping Scan: Uses the IP option to send packets with an invalid IP header.
+- Bad TCP Checksum Scan: Sends TCP packets with an incorrect checksum.
+- ACK Tunneling Scan: Uses the ACK flag to tunnel data.
+- IPv6 Extension Header Scanning: Sends packets with IPv6 extension headers.
+- Flow Label Scanning (IPv6): Scans using the IPv6 flow label.
+- Flow Label Scanning (IPv4): Scans using the IPv4 flow label.
+- Fragmented ICMP Scanning: Sends fragmented ICMP packets.
+- Covert Channel Scanning: Scans for covert channels.
+- VLAN Hopping Scan: Attempts to hop VLANs.
+- Application Layer Scanning: Scans at the application layer.
+- Malformed Packet Scan: Sends packets with malformed headers.
+- SYN+ACK Scan: Sends SYN+ACK packets to scan.
+- TCP Timestamp Option Manipulation Scan: Manipulates TCP timestamp options.
+- Fragmentation Offset Manipulation Scan: Manipulates fragmentation offset.
+- TCP Urgent Pointer Scan: Uses the TCP urgent pointer.
+- Custom Fragmented TCP Scan: Sends custom fragmented TCP packets.
+- TCP Out-of-Order Scan: Sends TCP packets out of order.
+- TCP Keep-Alive Probe: Sends TCP keep-alive probes.
+- GRE Scan: Scans using the GRE protocol.
+- IPsec Scan: Scans using the IPsec protocol.
+- IP Option Padding Scan: Sends packets with IP option padding.
+- Randomized TTL Scan: Uses random TTL values for scanning.
+- Reverse IP Scan: Sends packets with the source IP set to the destination IP.
+- Custom IP Options Scan: Uses custom IP options for scanning.
+- ICMP Source Quench Scan: Sends ICMP source quench packets.
+- Custom TCP Option Scan: Uses custom TCP options for scanning.
+- Custom Payload TCP Scan: Sends TCP packets with custom payloads.
+- MPLS Scan: Uses MPLS labels for scanning.
+- Ethernet Frame Scan: Sends Ethernet frames for scanning.
+- TCP Duplicate ACK Scan: Sends duplicate TCP ACKs.
+
 ## Features
 
 - Resolves target domains, IP addresses, or CIDR notation.
@@ -111,11 +144,24 @@ python ng-portscan.py --target example.com --ports 80,443 --showplugindetail
 python ng-portscan.py --target example.com --ports 80,443 --ipv6 --showdetail --threads 20
 ```
 
-## Example Usage
+## Example Usage for One Target
 
 ```bash
 python ng-portscan.py --target 192.168.100.16 --ports 139 --threads 10 --showdetail --showopenport
 ```
+
+## Example Usage for Multiple Targets
+
+```bash
+python ng-portscan.py --target 192.168.100.16,example1.com,example2.com --ports 139 --threads 10 --showdetail --showopenport
+```
+
+## Example Usage for CIDR
+
+```bash
+python ng-portscan.py --target 192.168.100.0/24 --ports 139 --threads 10 --showdetail --showopenport
+```
+
 
 ## Screenshot (Linux/Mac/Windows Compatible)
 
