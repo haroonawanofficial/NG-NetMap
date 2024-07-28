@@ -69,6 +69,56 @@ Install the required Python packages using pip:
 pip install scapy tabulate colorama
 ```
 
+## Basic Scan
+
+```bash
+python ng-portscan.py --target example.com --ports 80,443
+```
+
+## Specifying Number of Threads
+
+```bash
+python ng-portscan.py --target example.com --ports 80,443 --threads 10
+```
+
+## Showing Detailed Results
+
+```bash
+python ng-portscan.py --target 2001:0db8:85a3:0000:0000:8a2e:0370:7334 --ports 80,443 --showdetail
+```
+
+## Showing Only Open Ports
+
+```bash
+python ng-portscan.py --target example.com --ports 80,443 --showopenport
+```
+
+## Showing Failed Plugins
+
+```bash
+python ng-portscan.py --target example.com --ports 80,443 --showfailed
+```
+
+## Showing Detailed Plugin Descriptions
+
+```bash
+python ng-portscan.py --target example.com --ports 80,443 --showplugindetail
+```
+
+## Combining Options
+
+```bash
+python ng-portscan.py --target example.com --ports 80,443 --ipv6 --showdetail --threads 20
+```
+
+## Example Usage
+
+```bash
+python ng-portscan.py --target 192.168.100.16 --ports 139 --threads 10 --showdetail --showopenport
+```
+
+## Screenshot (Linux/Mac/Windows Compatible)
+
 ![NG Port Scanner](https://i.ibb.co/YhLHK1V/ngport.png)
 
 
