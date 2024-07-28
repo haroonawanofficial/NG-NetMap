@@ -38,6 +38,12 @@ Traditional scanners often get blocked by firewalls and intrusion detection syst
 - **Detailed Output**: Options to show detailed results, only open ports, or failed scans, providing flexibility based on user needs.
 - **Plugin Descriptions**: Detailed descriptions of each scanning technique help users understand what each scan does and why it’s useful.
 
+### Built-in Packet Sniffer Capabilities
+
+- **Windows Support**: Utilizes built-in Windows packet sniffer libraries to identify the responses and create assumptions if port is open or closed of filtered.
+- **Linux Support**:  Utilizes built-in Linux packet sniffer libraries to identify the responses and create assumptions if port is open or closed of filtered.
+- **Mac Support**:  Utilizes built-in Mac packet sniffer libraries to identify the responses and create assumptions if port is open or closed of filtered.
+
 ## Features
 
 - Resolves target domains, IP addresses, or CIDR notation.
