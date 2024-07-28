@@ -181,7 +181,7 @@ def banner_grabbing(target_ip, target_port, retries=3, timeout=5):
             except Exception as e:
                 logging.error(f"Error grabbing banner on port {target_port} using socket context manager: {e}")
 
-    if not banners and target_port in [80, 443]:  # If no banner was grabbed using socket, try using pycurl for HTTP/HTTPS
+    if not banners and target_port in [80, 443]:  # If Cannot find was grabbed using socket, try using pycurl for HTTP/HTTPS
         for _ in range(retries):
             try:
                 buffer = BytesIO()
@@ -210,7 +210,7 @@ def banner_grabbing(target_ip, target_port, retries=3, timeout=5):
             except Exception as e:
                 logging.error(f"Error grabbing banner on port {target_port} using telnet: {e}")
 
-    return "\n".join(banners) if banners else "No banner"
+    return "\n".join(banners) if banners else "Cannot find"
 
 def perform_scan(scan_type, packet, target_ip, target_port, src_ip=None, use_vulners=False):
     try:
@@ -224,13 +224,13 @@ def perform_scan(scan_type, packet, target_ip, target_port, src_ip=None, use_vul
         port_response = "Open" if port_open else "Closed"
         scan_success = "Yes" if response else "No"
         advanced_packet_response = response.summary() if response else "No response"
-        banner = banner_grabbing(target_ip, target_port) if port_open else "No banner"
+        banner = banner_grabbing(target_ip, target_port) if port_open else "Cannot find"
         vulnerabilities = get_vulnerabilities(banner) if use_vulners else "CVE did not match"
         log_scan_result(scan_type, target_ip, target_port, domain, response, os_detected, port_response, scan_success, packet, response, banner, vulnerabilities)
         return [scan_type, advanced_packet_response, os_detected, target_ip, domain, target_port, port_response, scan_success, packet.summary(), response.summary() if response else "No response", banner, vulnerabilities]
     except Exception as e:
         logging.error(f"Error performing scan {scan_type} on {target_ip}:{target_port}: {e}")
-        return [scan_type, "Error", "Unknown", target_ip, "Unknown", target_port, "Error", "No", "Error", "Error", "No banner", "No vulnerabilities"]
+        return [scan_type, "Error", "Unknown", target_ip, "Unknown", target_port, "Error", "No", "Error", "Error", "Cannot find", "No vulnerabilities"]
 
 def get_vulnerabilities(banner):
     try:
