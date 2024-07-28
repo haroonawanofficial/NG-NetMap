@@ -1,9 +1,9 @@
 
-# NG (Next Generation) Port Scan
+# NG (Next Generation) Network Scanner
 
 Next Generation Port Scan is advanced scanner that identifies open ports and gather information about target hosts using TCP/IP stack and RFC designs to help us bypass firewalls and truly understand, if port is closed or open. It supports both IPv4 and IPv6, and includes features such as logging, multi-threading, and detailed scan results.
 
-## Why This is a Next-Generation Port Scanner
+## Why This is a Next-Generation Network Scanner
 
 This scanner incorporates cutting-edge scanning methods that go beyond traditional port scanning. It includes innovative techniques like:
 
@@ -14,6 +14,40 @@ This scanner incorporates cutting-edge scanning methods that go beyond tradition
 - **Flow Label Scanning (IPv6)**: Exploits IPv6 flow labels for advanced probing.
 - **Fragmented ICMP Scanning**: Sends fragmented ICMP packets to evade detection systems.
 - **Covert Channel Scanning**: Searches for covert communication channels within a network or public facing IP using built-in Windows, Linux packet sniffer libraries.
+
+# Evasion Techniques Used
+
+During the scanning process, various evasion techniques were employed to avoid detection by IDS/IPS systems. Here is a detailed explanation of each technique:
+
+1. **Randomized Source IP and Port**
+    - **Description**: This technique involves altering the source IP address and port number for each packet sent to the target. This makes it difficult for security systems to correlate and detect the scanning activity.
+
+2. **Randomized Payloads**
+    - **Description**: The payload of each packet is changed randomly. This helps in evading signature-based detection systems that rely on identifying specific patterns in the packet payloads.
+
+3. **Variable Packet Sizes**
+    - **Description**: The size of the packets is varied during the scan. This can help in avoiding detection systems that might flag packets of unusual or consistent sizes.
+
+4. **TCP Timestamp Manipulation**
+    - **Description**: This technique involves altering the TCP timestamps within the packet headers. This can confuse detection systems that use timestamp analysis to detect malicious activity.
+
+5. **IP Option Fields Manipulation**
+    - **Description**: The IP option fields in the packet headers are manipulated to introduce variability and evade detection. These fields are often used for routing and control purposes.
+
+6. **Decoy Packets**
+    - **Description**: Decoy packets are sent alongside the actual scanning packets. These decoys make it harder for detection systems to distinguish between legitimate and scanning traffic.
+
+7. **Protocol Mix**
+    - **Description**: Multiple protocols are used during the scan to diversify the traffic. This can help in evading detection systems that focus on specific protocols.
+
+8. **Adaptive Timing**
+    - **Description**: The timing of the packets is adjusted dynamically to avoid detection. This can involve sending packets at irregular intervals or introducing delays.
+
+9. **Discovers Firewall**
+    - **Description**: Discovers if system or network has firewall or IDS/IPS and how it can evade or lunch attacks.
+
+10. **Segmented**
+    - **Description**: Discovers if system is part of segmention with extra details.
 
 ### Bypassing Filters
 
