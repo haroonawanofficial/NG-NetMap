@@ -20,31 +20,6 @@ import socket
 import ssl
 
 # Load Nmap service probes with utf-8 encoding
-with open('nmap-service-probes', 'r', encoding='utf-8') as file:
-    nmap_probes = file.readlines()
-
-init(autoreset=True)
-
-# Setup logging
-logging.basicConfig(filename='scan_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Vulners API Key
-VULNERS_API_KEY = "5RGD73WQQXYEQ3158QVJBE61JS0LLAR4YM9C8UV2GS7YIGOF72793JP9IBT3PQYS"
-
-def banner_grabbing_with_nmap_probes(target_ip, target_port, retries=3, timeout=5):
-    for _ in range(retries):
-        try:
-            probe = random.choice(nmap_probes).strip()
-            if not probe or probe.startswith('#'):
-                continue
-            packet = IP(dst=target_ip) / TCP(dport=target_port) / Raw(load=probe)
-            response = sr1(packet, timeout=timeout, verbose=False)
-            if response and response.haslayer(Raw):
-                return response[Raw].load.decode().strip()
-        except Exception as e:
-            logging.error(f"Error using Nmap probe on port {target_port}: {e}")
-    return "Cannot find"
-
 def load_nmap_service_probes(file_path):
     probes = []
     with open(file_path, 'r', encoding='utf-8') as f:
@@ -63,6 +38,30 @@ def load_nmap_service_probes(file_path):
             probes.append(probe)
     return probes
 
+probes = load_nmap_service_probes('nmap-service-probes')
+
+init(autoreset=True)
+
+# Setup logging
+logging.basicConfig(filename='scan_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Vulners API Key
+VULNERS_API_KEY = "5RGD73WQQXYEQ3158QVJBE61JS0LLAR4YM9C8UV2GS7YIGOF72793JP9IBT3PQYS"
+
+def banner_grabbing_with_nmap_probes(target_ip, target_port, retries=3, timeout=5):
+    for _ in range(retries):
+        try:
+            probe = random.choice(probes)['probe'].strip()
+            if not probe or probe.startswith('#'):
+                continue
+            packet = IP(dst=target_ip) / TCP(dport=target_port) / Raw(load=probe)
+            response = sr1(packet, timeout=timeout, verbose=False)
+            if response and response.haslayer(Raw):
+                return response[Raw].load.decode().strip()
+        except Exception as e:
+            logging.error(f"Error using Nmap probe on port {target_port}: {e}")
+    return "Cannot find"
+
 def detect_service_from_banner(banner, probes):
     for probe in probes:
         for match in probe['matches']:
@@ -74,9 +73,6 @@ def detect_service_from_banner(banner, probes):
                     service = match.split()[1]
                     return service
     return "Unknown"
-
-
-probes = load_nmap_service_probes('nmap-service-probes')
 
 # Plugin descriptions
 plugins = {
@@ -158,12 +154,19 @@ def parse_arguments():
 
 def is_ip_alive(target_ip):
     try:
-        packet = IP(dst=target_ip)/ICMP()
-        response = sr1(packet, timeout=1, verbose=False)
-        return response is not None
+        # ICMP ping
+        icmp_packet = IP(dst=target_ip)/ICMP()
+        icmp_response = sr1(icmp_packet, timeout=1, verbose=False)
+        if icmp_response:
+            return True
+        # TCP ping on port 80 (commonly open port)
+        tcp_packet = IP(dst=target_ip)/TCP(dport=80, flags="S")
+        tcp_response = sr1(tcp_packet, timeout=1, verbose=False)
+        if tcp_response:
+            return True
     except Exception as e:
         logging.error(f"Error checking if IP is alive: {e}")
-        return False
+    return False
 
 def get_domain_name(target_ip):
     try:
@@ -315,11 +318,8 @@ def print_scan_results(scan_results, show_detail, show_open_port, show_failed):
         Fore.CYAN + "Port" + Style.RESET_ALL,
         Fore.CYAN + "Port Response" + Style.RESET_ALL,
         Fore.CYAN + "Scan Success" + Style.RESET_ALL,
-#        Fore.CYAN + "Packet Sent" + Style.RESET_ALL,
-#        Fore.CYAN + "Packet Received" + Style.RESET_ALL,
         Fore.CYAN + "Banner" + Style.RESET_ALL,
         Fore.CYAN + "Vulnerabilities" + Style.RESET_ALL,
-#        Fore.CYAN + "Timestamp" + Style.RESET_ALL
     ]
     
     table = []
@@ -334,12 +334,8 @@ def print_scan_results(scan_results, show_detail, show_open_port, show_failed):
                 item[5],
                 item[6],
                 Fore.GREEN + item[7] + Style.RESET_ALL if item[7] == "Yes" else Fore.RED + item[7] + Style.RESET_ALL,
-                item[8],
-                item[9],
                 item[10],
-                item[11],
-                item[12],
-                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                item[12]
             ]
             if show_detail or item[6] == "Open":  # Show detailed or only open ports
                 table.append(row)
@@ -351,7 +347,6 @@ def print_scan_results(scan_results, show_detail, show_open_port, show_failed):
         print(tabulate(table, headers=headers, tablefmt="grid", maxcolwidths=[terminal_width // len(headers)]))
     else:
         print("No scan results to display based on the current filter settings.")
-
 
 def eliminate_false_positives(responses):
     valid_responses = []
