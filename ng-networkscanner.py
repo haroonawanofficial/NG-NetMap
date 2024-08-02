@@ -19,6 +19,11 @@ from io import BytesIO
 import socket
 import ssl
 
+init(autoreset=True)
+
+# Setup logging
+logging.basicConfig(filename='scan_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 # Load Nmap service probes with utf-8 encoding
 def load_nmap_service_probes(file_path):
     probes = []
@@ -40,27 +45,52 @@ def load_nmap_service_probes(file_path):
 
 probes = load_nmap_service_probes('nmap-service-probes')
 
-init(autoreset=True)
-
-# Setup logging
-logging.basicConfig(filename='scan_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Vulners API Key
-VULNERS_API_KEY = "5RGD73WQQXYEQ3158QVJBE61JS0LLAR4YM9C8UV2GS7YIGOF72793JP9IBT3PQYS"
+def extract_info_after_server(banner):
+    match = re.search(r'Server:\s*(.*)', banner, re.IGNORECASE)
+    return match.group(1) if match else "Cannot find"
 
 def banner_grabbing_with_nmap_probes(target_ip, target_port, retries=3, timeout=5):
     for _ in range(retries):
         try:
-            probe = random.choice(probes)['probe'].strip()
-            if not probe or probe.startswith('#'):
+            probe = random.choice(probes)
+            if not probe or probe['probe'].startswith('#'):
                 continue
-            packet = IP(dst=target_ip) / TCP(dport=target_port) / Raw(load=probe)
+            packet = IP(dst=target_ip) / TCP(dport=target_port, flags="S")
             response = sr1(packet, timeout=timeout, verbose=False)
-            if response and response.haslayer(Raw):
-                return response[Raw].load.decode().strip()
+            if response and response.haslayer(TCP) and response.getlayer(TCP).flags == 0x12:
+                # Perform the actual banner grabbing
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(timeout)
+                sock.connect((target_ip, target_port))
+                sock.sendall(probe['probe'].encode())
+                banner = sock.recv(1024).decode().strip()
+                sock.close()
+                if banner:
+                    return extract_info_after_server(banner)
         except Exception as e:
             logging.error(f"Error using Nmap probe on port {target_port}: {e}")
     return "Cannot find"
+
+def perform_scan(scan_type, packet, target_ip, target_port, src_ip=None, use_vulners=False, retries=3):
+    try:
+        logging.info(f"Performing {scan_type} on {target_ip}:{target_port}")
+        if src_ip:
+            packet[IP].src = src_ip
+        response = sr1(packet, timeout=1, verbose=False)
+        os_detected = get_os_from_response(response)
+        domain = get_domain_name(target_ip)
+        port_open = tcp_connect_scan(target_ip, target_port)
+        port_response = "Open" if port_open else "Closed"
+        scan_success = "Yes" if response else "No"
+        advanced_packet_response = response.summary() if response else "No response"
+        banner = banner_grabbing_with_nmap_probes(target_ip, target_port, retries=retries) if port_open else "Cannot find"
+        service = detect_service_from_banner(banner, probes)
+        vulnerabilities = get_vulnerabilities(banner) if use_vulners and port_open else "No vulnerabilities"
+        log_scan_result(scan_type, target_ip, target_port, domain, response, os_detected, port_response, scan_success, packet, response, banner, service, vulnerabilities)
+        return [scan_type, advanced_packet_response, os_detected, target_ip, domain, target_port, port_response, scan_success, packet.summary(), response.summary() if response else "No response", banner, service, vulnerabilities]
+    except Exception as e:
+        logging.error(f"Error performing scan {scan_type} on {target_ip}:{target_port}: {e}")
+        return [scan_type, "Error", "Unknown", target_ip, "Unknown", target_port, "Error", "No", "Error", "Error", "Cannot find", "Unknown", "No vulnerabilities"]
 
 def detect_service_from_banner(banner, probes):
     for probe in probes:
