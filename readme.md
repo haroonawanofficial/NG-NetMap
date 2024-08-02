@@ -15,6 +15,10 @@ This scanner incorporates cutting-edge scanning methods that go beyond tradition
 - **Fragmented ICMP Scanning**: Sends fragmented ICMP packets to evade detection systems.
 - **Covert Channel Scanning**: Searches for covert communication channels within a network or public facing IP using built-in Windows, Linux packet sniffer libraries.
 
+# Updated nmap services probe file
+
+We ensured that the techniques correspond to the Nmap probe to correctly identify the service. Currently, it supports the top 20 from the Nmap probe, including TCP/IP stack identification for Linux and Windows.
+
 # Evasion Techniques Used
 
 During the scanning process, various evasion techniques were employed to avoid detection by IDS/IPS systems. Here is a detailed explanation of each technique:
