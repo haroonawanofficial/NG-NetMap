@@ -4,7 +4,7 @@
 Next Generation Port Scan is advanced scanner that identifies open ports and gather information about target hosts using TCP/IP stack and RFC designs to help us bypass firewalls and truly understand, if port is closed or open. It supports both IPv4 and IPv6, and includes features such as logging, multi-threading, and detailed scan results.
 
 ## Affected Devices
-| Scan Type                      | Affected Devices                                                                                             | Banner Grabbing and OS Probing                            |
+| Scan Type                      | Devices                                                                                             | Banner Grabbing and OS Probing with CVE Detection                           |
 |--------------------------------|--------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
 | Inverse Mapping Scan           | Routers (Cisco ISR, Juniper MX), Firewalls (Cisco ASA, Fortinet FortiGate)                                    | Can identify network infrastructure and potentially reveal device banners and OS information       |
 | Bad TCP Checksum Scan          | Basic Firewalls (Fortinet FortiGate, Palo Alto Networks PA-Series, SonicWall TZ Series)                       | Can bypass basic checks and may expose service banners and OS details                               |
