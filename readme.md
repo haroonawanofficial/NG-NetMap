@@ -207,6 +207,10 @@ python ng-portscan.py --target 192.168.100.16,example1.com,example2.com --ports 
 python ng-portscan.py --target 192.168.100.0/24 --ports 139 --threads 10 --showdetail --showopenport
 ```
 
+## Full Usage
+```bash
+python ng-networkscanner.py --target testphp.vulnweb.com --ports 80 --vulners --publicscan --threads 10 --showdetail --showopenport --showplugindetail --showfailed
+```
 
 ## Screenshot (Linux/Mac/Windows Compatible)
 
