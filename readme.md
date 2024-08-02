@@ -214,6 +214,6 @@ python ng-networkscanner.py --target testphp.vulnweb.com --ports 80 --vulners --
 
 ## Screenshot (Linux/Mac/Windows Compatible)
 
-![NG Port Scanner](https://i.ibb.co/YhLHK1V/ngport.png)
+![Network Scan](https://i.ibb.co/YpTQYMt/ng-networkscan.png)
 
 
