@@ -17,7 +17,7 @@ This scanner incorporates cutting-edge scanning methods that go beyond tradition
 
 # Updated nmap services probe file
 
-We ensured that the techniques correspond to the Nmap probe to correctly identify the service. Currently, it supports the top 20 from the Nmap probe, including TCP/IP stack identification for Linux and Windows.
+We ensured that the techniques correspond to the Nmap probe to correctly identify the service. Currently, it supports service identification and banner grabbing using the updated Nmap services probe file and the techniques from the original script. This way, we have better chances and opportunities to bypass firewalls, IDS/IPS, and accurately identify the services. It works with TCP/IP stack matching for Linux and Windows.
 
 # Evasion Techniques Used
 
