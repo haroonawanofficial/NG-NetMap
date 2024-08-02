@@ -4,8 +4,8 @@ import ipaddress
 import logging
 from datetime import datetime
 from scapy.all import *
-from scapy.layers.inet import IP, TCP, ICMP, Ether, UDP
-from scapy.layers.inet6 import IPv6, ICMPv6EchoRequest
+from scapy.layers.inet import IP, TCP, ICMP, Ether, UDP, IPOption, GRE
+from scapy.layers.inet6 import IPv6, ICMPv6EchoRequest, IPv6ExtHdrRouting
 from scapy.layers.l2 import Dot1Q
 from scapy.contrib.mpls import MPLS
 from tabulate import tabulate
@@ -14,11 +14,14 @@ import shutil
 import json
 import requests
 from concurrent.futures import ThreadPoolExecutor
-import telnetlib
 import pycurl
 from io import BytesIO
 import socket
 import ssl
+
+# Load Nmap service probes with utf-8 encoding
+with open('nmap-service-probes', 'r', encoding='utf-8') as file:
+    nmap_probes = file.readlines()
 
 init(autoreset=True)
 
@@ -27,6 +30,53 @@ logging.basicConfig(filename='scan_log.txt', level=logging.INFO, format='%(ascti
 
 # Vulners API Key
 VULNERS_API_KEY = "5RGD73WQQXYEQ3158QVJBE61JS0LLAR4YM9C8UV2GS7YIGOF72793JP9IBT3PQYS"
+
+def banner_grabbing_with_nmap_probes(target_ip, target_port, retries=3, timeout=5):
+    for _ in range(retries):
+        try:
+            probe = random.choice(nmap_probes).strip()
+            if not probe or probe.startswith('#'):
+                continue
+            packet = IP(dst=target_ip) / TCP(dport=target_port) / Raw(load=probe)
+            response = sr1(packet, timeout=timeout, verbose=False)
+            if response and response.haslayer(Raw):
+                return response[Raw].load.decode().strip()
+        except Exception as e:
+            logging.error(f"Error using Nmap probe on port {target_port}: {e}")
+    return "Cannot find"
+
+def load_nmap_service_probes(file_path):
+    probes = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        probe = None
+        for line in f:
+            if line.startswith('#') or line.strip() == '':
+                continue
+            if line.startswith('Probe'):
+                if probe:
+                    probes.append(probe)
+                probe = {'probe': line.strip(), 'matches': []}
+            elif line.startswith('match'):
+                match = line.strip()
+                probe['matches'].append(match)
+        if probe:
+            probes.append(probe)
+    return probes
+
+def detect_service_from_banner(banner, probes):
+    for probe in probes:
+        for match in probe['matches']:
+            pattern = re.compile(r'match\s+.+?\s+m/(?P<pattern>.+?)/')
+            m = pattern.search(match)
+            if m:
+                regex = m.group('pattern')
+                if re.search(regex, banner):
+                    service = match.split()[1]
+                    return service
+    return "Unknown"
+
+
+probes = load_nmap_service_probes('nmap-service-probes')
 
 # Plugin descriptions
 plugins = {
@@ -99,14 +149,12 @@ def parse_arguments():
     parser.add_argument('--publicscan', action='store_true', help='Scan public-facing IP addresses')
     parser.add_argument('--vulners', action='store_true', help='Use Vulners to find vulnerabilities')
     args = parser.parse_args()
-    targets = []
-    for target in args.target.split(','):
-        try:
-            network = ipaddress.ip_network(target, strict=False)
-            targets.extend([str(ip) for ip in network.hosts()])
-        except ValueError:
-            targets.append(target)
-    return targets, [int(port) for port in args.ports.split(',')], args.threads, args.ipv6, args.showdetail, args.showopenport, args.showfailed, args.showplugindetail, args.networkscan, args.publicscan, args.vulners
+    
+    # Correctly parse targets and ports
+    targets = args.target.split(',')
+    target_ports = [int(port) for port in args.ports.split(',')]
+    
+    return targets, target_ports, args.threads, args.ipv6, args.showdetail, args.showopenport, args.showfailed, args.showplugindetail, args.networkscan, args.publicscan, args.vulners
 
 def is_ip_alive(target_ip):
     try:
@@ -179,7 +227,7 @@ def banner_grabbing(target_ip, target_port, retries=3, timeout=5):
                     banners.append(banner)
                     break  # Exit loop if banner is successfully grabbed
             except Exception as e:
-                logging.error(f"Error grabbing banner on port {target_port} using socket context manager: {e}")
+                logging.error(f"Error grabbing banner on port {target_port}: {e}")
 
     if not banners and target_port in [80, 443]:  # If Cannot find was grabbed using socket, try using pycurl for HTTP/HTTPS
         for _ in range(retries):
@@ -199,17 +247,6 @@ def banner_grabbing(target_ip, target_port, retries=3, timeout=5):
             except Exception as e:
                 logging.error(f"Error grabbing banner on port {target_port} using pycurl: {e}")
 
-    if not banners and target_port not in [80, 443]:  # Use Telnet for other specific ports
-        for _ in range(retries):
-            try:
-                tn = telnetlib.Telnet(target_ip, target_port, timeout=5)
-                response = tn.read_some().decode('ascii').strip()
-                banners.append(response)
-                tn.close()
-                break  # Exit loop if banner is successfully grabbed
-            except Exception as e:
-                logging.error(f"Error grabbing banner on port {target_port} using telnet: {e}")
-
     return "\n".join(banners) if banners else "Cannot find"
 
 def perform_scan(scan_type, packet, target_ip, target_port, src_ip=None, use_vulners=False):
@@ -224,13 +261,14 @@ def perform_scan(scan_type, packet, target_ip, target_port, src_ip=None, use_vul
         port_response = "Open" if port_open else "Closed"
         scan_success = "Yes" if response else "No"
         advanced_packet_response = response.summary() if response else "No response"
-        banner = banner_grabbing(target_ip, target_port) if port_open else "Cannot find"
-        vulnerabilities = get_vulnerabilities(banner) if use_vulners else "CVE did not match"
-        log_scan_result(scan_type, target_ip, target_port, domain, response, os_detected, port_response, scan_success, packet, response, banner, vulnerabilities)
-        return [scan_type, advanced_packet_response, os_detected, target_ip, domain, target_port, port_response, scan_success, packet.summary(), response.summary() if response else "No response", banner, vulnerabilities]
+        banner = banner_grabbing_with_nmap_probes(target_ip, target_port) if port_open else "Cannot find"
+        service = detect_service_from_banner(banner, probes)
+        vulnerabilities = get_vulnerabilities(banner) if use_vulners and port_open else "No vulnerabilities"
+        log_scan_result(scan_type, target_ip, target_port, domain, response, os_detected, port_response, scan_success, packet, response, banner, service, vulnerabilities)
+        return [scan_type, advanced_packet_response, os_detected, target_ip, domain, target_port, port_response, scan_success, packet.summary(), response.summary() if response else "No response", banner, service, vulnerabilities]
     except Exception as e:
         logging.error(f"Error performing scan {scan_type} on {target_ip}:{target_port}: {e}")
-        return [scan_type, "Error", "Unknown", target_ip, "Unknown", target_port, "Error", "No", "Error", "Error", "Cannot find", "No vulnerabilities"]
+        return [scan_type, "Error", "Unknown", target_ip, "Unknown", target_port, "Error", "No", "Error", "Error", "Cannot find", "Unknown", "No vulnerabilities"]
 
 def get_vulnerabilities(banner):
     try:
@@ -239,13 +277,19 @@ def get_vulnerabilities(banner):
         response = requests.post('https://vulners.com/api/v3/search/lucene/', headers=headers, data=json.dumps(data))
         if response.status_code == 200:
             vulnerabilities = response.json().get('data', {}).get('search', {}).get('documents', [])
-            return vulnerabilities
-        return "No vulnerabilities found"
+            if vulnerabilities:
+                vulns = []
+                for vuln in vulnerabilities:
+                    vulns.append(vuln['title'] + ' - ' + vuln['description'])
+                return '\n'.join(vulns)
+            else:
+                return "No vulnerabilities found"
+        return "Error fetching vulnerabilities"
     except Exception as e:
         logging.error(f"Error fetching vulnerabilities: {e}")
-        return "No vulnerabilities"
+        return "Error fetching vulnerabilities"
 
-def log_scan_result(scan_type, target_ip, target_port, domain, response, os_detected, port_response, scan_success, packet, response_packet, banner, vulnerabilities):
+def log_scan_result(scan_type, target_ip, target_port, domain, response, os_detected, port_response, scan_success, packet, response_packet, banner, detected_service, vulnerabilities):
     logging.info(f"Scan Type: {scan_type}")
     logging.info(f"Response: {response.summary() if response else 'No response'}")
     logging.info(f"Operating System: {os_detected}")
@@ -257,6 +301,7 @@ def log_scan_result(scan_type, target_ip, target_port, domain, response, os_dete
     logging.info(f"Packet Sent: {packet.summary()}")
     logging.info(f"Packet Received: {response_packet.summary() if response_packet else 'No response'}")
     logging.info(f"Banner: {banner}")
+    logging.info(f"Detected Service: {detected_service}")
     logging.info(f"Vulnerabilities: {vulnerabilities}")
     logging.info("-" * 50)
 
@@ -270,34 +315,43 @@ def print_scan_results(scan_results, show_detail, show_open_port, show_failed):
         Fore.CYAN + "Port" + Style.RESET_ALL,
         Fore.CYAN + "Port Response" + Style.RESET_ALL,
         Fore.CYAN + "Scan Success" + Style.RESET_ALL,
-        Fore.CYAN + "Packet Sent" + Style.RESET_ALL,
-        Fore.CYAN + "Packet Received" + Style.RESET_ALL,
+#        Fore.CYAN + "Packet Sent" + Style.RESET_ALL,
+#        Fore.CYAN + "Packet Received" + Style.RESET_ALL,
         Fore.CYAN + "Banner" + Style.RESET_ALL,
         Fore.CYAN + "Vulnerabilities" + Style.RESET_ALL,
-        Fore.CYAN + "Timestamp" + Style.RESET_ALL
+#        Fore.CYAN + "Timestamp" + Style.RESET_ALL
     ]
     
-    table = [[
-        Fore.GREEN + str(item[0]) + Style.RESET_ALL if item[7] == "Yes" else Fore.RED + str(item[0]) + Style.RESET_ALL,
-        item[1],
-        item[2],
-        item[3],
-        item[4],
-        item[5],
-        item[6],
-        Fore.GREEN + item[7] + Style.RESET_ALL if item[7] == "Yes" else Fore.RED + item[7] + Style.RESET_ALL,
-        item[8],
-        item[9],
-        item[10],
-        item[11],
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    ] for item in scan_results if show_detail or (show_open_port and item[6] == "Open") or (show_failed and item[7] == "No")]
-
+    table = []
+    for item in scan_results:
+        if len(item) >= 13:  # Check if the item has enough elements
+            row = [
+                Fore.GREEN + str(item[0]) + Style.RESET_ALL if item[7] == "Yes" else Fore.RED + str(item[0]) + Style.RESET_ALL,
+                item[1],
+                item[2],
+                item[3],
+                item[4],
+                item[5],
+                item[6],
+                Fore.GREEN + item[7] + Style.RESET_ALL if item[7] == "Yes" else Fore.RED + item[7] + Style.RESET_ALL,
+                item[8],
+                item[9],
+                item[10],
+                item[11],
+                item[12],
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ]
+            if show_detail or item[6] == "Open":  # Show detailed or only open ports
+                table.append(row)
+        else:
+            logging.error(f"Incomplete scan result: {item}")  # Optional: log incomplete results
+    
     if table:
         terminal_width = shutil.get_terminal_size().columns
         print(tabulate(table, headers=headers, tablefmt="grid", maxcolwidths=[terminal_width // len(headers)]))
     else:
         print("No scan results to display based on the current filter settings.")
+
 
 def eliminate_false_positives(responses):
     valid_responses = []
@@ -552,7 +606,10 @@ def main():
     for target in targets:
         target_ip = resolve_target(target)
         target_ipv6 = target_ip
-        segment = "Same segment" if ipaddress.ip_network(target, strict=False).subnet_of(ipaddress.ip_network(targets[0], strict=False)) else "Different segment"
+        try:
+            segment = "Same segment" if ipaddress.ip_network(target_ip, strict=False).subnet_of(ipaddress.ip_network(resolve_target(targets[0]), strict=False)) else "Different segment"
+        except ValueError:
+            segment = "Unknown segment"
         firewall_detected = "No"
 
         # Convert IPv4 to IPv6 if needed
