@@ -18,9 +18,9 @@ This scanner incorporates cutting-edge scanning methods that go beyond tradition
 # Updated nmap-service-probes file
 
 We ensured that the the original techniques of the script should use updated service probing from nmap-service-probes file so this way, we have better chances and opportunities to bypass firewalls, IDS/IPS, and accurately identify the services. 
-- Updated nmap-service-probes file have full support for the original tcp/ip techniques used in the script to make it work correctly
-- Updated nmap-service-probes file have support for ports
-- Updated nmap-service-probes file have support for TCP/IP stack matching for Linux and Windows
+- The updated nmap-service-probes file has full support for the original TCP/IP techniques used in the script to ensure it works correctly.
+- The updated nmap-service-probes file supports port matching for Linux and Windows, as used by the techniques in the script.
+- The updated nmap-service-probes file supports TCP/IP stack matching for Linux and Windows, as used by the techniques in the script.
 
 # Evasion Techniques Used
 
