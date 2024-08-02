@@ -3,6 +3,18 @@
 
 Next Generation Port Scan is advanced scanner that identifies open ports and gather information about target hosts using TCP/IP stack and RFC designs to help us bypass firewalls and truly understand, if port is closed or open. It supports both IPv4 and IPv6, and includes features such as logging, multi-threading, and detailed scan results.
 
+## Models that script can bypass and affect
+| Scan Type                      | Affected Devices                                                                                             | Devices/Systems That Not Catch It                                                     |
+|--------------------------------|--------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| Inverse Mapping Scan           | Routers (Cisco ISR, Juniper MX), Firewalls (Cisco ASA, Fortinet FortiGate)                                    | Basic firewalls, Non-stateful inspection devices                                          |
+| Bad TCP Checksum Scan          | Basic Firewalls (Fortinet FortiGate, Palo Alto Networks PA-Series, SonicWall TZ Series)                       | Advanced firewalls with deep packet inspection (Cisco ASA, Check Point NGFW, Palo Alto Networks) |
+| ACK Tunneling Scan             | Firewalls (Sophos XG, SonicWall NSA, Barracuda CloudGen)                                                      | Stateful firewalls, IDS/IPS with state tracking (Cisco Firepower, Juniper SRX)            |
+| IPv6 Extension Header Scanning | Routers, Firewalls, IPv6 Nodes (Cisco Nexus, Juniper EX, Huawei NE)                                           | Devices not supporting IPv6                                                               |
+| Flow Label Scanning (IPv6)     | Routers, Firewalls (Cisco ISR, Juniper SRX, Arista 7000 Series)                                               | IPv4-only devices, Basic firewalls                                                        |
+| Fragmented ICMP Scanning       | IDS/IPS (Snort, Suricata), Firewalls (Palo Alto Networks PA-Series, Fortinet FortiGate, Check Point Firewall) | Advanced IDS/IPS, Firewalls with ICMP reassembly (Cisco ASA, Palo Alto Networks)          |
+| Covert Channel Scanning        | Network nodes (Windows, Linux systems), Public facing IPs                                                    | High-end IDS/IPS, Network monitoring tools (Cisco Stealthwatch, Fortinet FortiSIEM)       |
+
+
 ## Why This is a Next-Generation Network Scanner
 
 This scanner incorporates cutting-edge scanning methods that go beyond traditional port scanning. It includes innovative techniques like:
