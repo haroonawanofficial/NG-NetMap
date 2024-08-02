@@ -3,16 +3,17 @@
 
 Next Generation Port Scan is advanced scanner that identifies open ports and gather information about target hosts using TCP/IP stack and RFC designs to help us bypass firewalls and truly understand, if port is closed or open. It supports both IPv4 and IPv6, and includes features such as logging, multi-threading, and detailed scan results.
 
-## Models that are affected
-| Scan Type                      | Affected Devices                                                                                             |
-|--------------------------------|--------------------------------------------------------------------------------------------------------------|
-| Inverse Mapping Scan           | Routers (Cisco ISR, Juniper MX), Firewalls (Cisco ASA, Fortinet FortiGate)                                    |
-| Bad TCP Checksum Scan          | Basic Firewalls (Fortinet FortiGate, Palo Alto Networks PA-Series, SonicWall TZ Series)                       |
-| ACK Tunneling Scan             | Firewalls (Sophos XG, SonicWall NSA, Barracuda CloudGen)                                                      |
-| IPv6 Extension Header Scanning | Routers, Firewalls, IPv6 Nodes (Cisco Nexus, Juniper EX, Huawei NE)                                           |
-| Flow Label Scanning (IPv6)     | Routers, Firewalls (Cisco ISR, Juniper SRX, Arista 7000 Series)                                               |
-| Fragmented ICMP Scanning       | IDS/IPS (Snort, Suricata), Firewalls (Palo Alto Networks PA-Series, Fortinet FortiGate, Check Point Firewall) |
-| Covert Channel Scanning        | Network nodes (Windows, Linux systems), Public facing IPs                                                    |
+## Affected Devices
+| Scan Type                      | Affected Devices                                                                                             | Banner Grabbing and OS Probing                            |
+|--------------------------------|--------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| Inverse Mapping Scan           | Routers (Cisco ISR, Juniper MX), Firewalls (Cisco ASA, Fortinet FortiGate)                                    | Can identify network infrastructure and potentially reveal device banners and OS information       |
+| Bad TCP Checksum Scan          | Basic Firewalls (Fortinet FortiGate, Palo Alto Networks PA-Series, SonicWall TZ Series)                       | Can bypass basic checks and may expose service banners and OS details                               |
+| ACK Tunneling Scan             | Firewalls (Sophos XG, SonicWall NSA, Barracuda CloudGen)                                                      | Utilizes ACK flag to reveal internal network services and their banners and OS information          |
+| IPv6 Extension Header Scanning | Routers, Firewalls, IPv6 Nodes (Cisco Nexus, Juniper EX, Huawei NE)                                           | Probes IPv6 nodes, which can provide detailed banners and OS information                            |
+| Flow Label Scanning (IPv6)     | Routers, Firewalls (Cisco ISR, Juniper SRX, Arista 7000 Series)                                               | Advanced probing technique that can extract detailed service banners and OS data                    |
+| Fragmented ICMP Scanning       | IDS/IPS (Snort, Suricata), Firewalls (Palo Alto Networks PA-Series, Fortinet FortiGate, Check Point Firewall) | Sends fragmented ICMP packets to gather information on device banners and OS versions               |
+| Covert Channel Scanning        | Network nodes (Windows, Linux systems), Public facing IPs                                                    | Searches for covert channels and can identify detailed banners and OS information from network nodes|
+
 
 
 ## Why This is a Next-Generation Network Scanner
