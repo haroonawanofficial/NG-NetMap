@@ -1,7 +1,7 @@
 
 # NG (Next Generation) Network Mapper
 
-Next Generation Port Scan is advanced scanner that identifies open ports and gather information about target hosts using TCP/IP stack and RFC designs to help us bypass firewalls and truly understand, if port is closed or open. It supports both IPv4 and IPv6, and includes features such as logging, multi-threading, and detailed scan results.
+Next Generation Network Mapper understands and detect network, execute thorough port scans, and circumvent security measures by leveraging TCP/IP design vulnerabilities as outlined in RFC standards. This tool features integrated probing for precise banner grabbing and OS scanning, making it perfect for Capture The Flag (CTF) competitions and practical applications. It can bypass Intrusion Prevention Systems (IPS), Intrusion Detection Systems (IDS), promiscuous mode devices, and firewalls.
 
 ## Affected Devices
 | Scan Type                      | Devices                                                                                             | Banner Grabbing and OS Probing with CVE Detection                           |
