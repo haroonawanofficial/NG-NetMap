@@ -246,14 +246,9 @@ python ng-netmap.py --target 192.168.1.1 --ports 22,80 --udp
 python ng-netmap.py --target 192.168.1.1 --ports 22,80 --icmp
 ```
 
-- Scan the target using SYN scan with threads using all techniques:
+- Scan the target using all scan with threads
 ```bash
 - python ng-netmap.py --target 192.168.1.1 --ports 22,80 --all
-```
-
-- Enable custom scanning techniques and use a specific payload.
-```bash
-python ng-netmap.py --target 192.168.1.1 --ports 80 --custom --custom-payload "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n"
 ```
 
 - Enable custom scanning techniques.
