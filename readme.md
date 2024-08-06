@@ -222,8 +222,28 @@ python ng-portscan.py --target 192.168.100.0/24 --ports 139 --threads 10 --showd
 
 ## Full Usage
 ```bash
-python ng-networkscanner.py --target testphp.vulnweb.com --ports 80 --vulners --publicscan --threads 10 --showdetail --showopenport --showplugindetail --showfailed
+python ng-netmap.py --target testphp.vulnweb.com --ports 80 --vulners --publicscan --threads 10 --showdetail --showopenport --showplugindetail --showfailed
 ```
+
+## Advance Usages
+- Scan the target 192.168.1.1 on ports 22 and 80 using TCP scan with 10 threads
+python ng-netmap.py --target 192.168.1.1 --ports 22,80 --tcp
+
+- Scan the target 192.168.1.1 on ports 22 and 80 using UDP scan with 10 threads
+python ng-netmap.py --target 192.168.1.1 --ports 22,80 --udp
+
+- Scan the target 192.168.1.1 on ports 22 and 80 using ICMP scan with 10 threads
+python ng-netmap.py --target 192.168.1.1 --ports 22,80 --icmp
+
+Scan the target 192.168.1.1 on ports 22 and 80 using all available scanning techniques:
+- python ng-netmap.py --target 192.168.1.1 --ports 22,80 --all
+
+
+Scan the target 192.168.1.1 on ports 22 and 80 using a custom payload and bogus payload:
+- python ng-netmap.py --target 192.168.1.1 --ports 22,80 --custom-payload "example payload" --bogus-payload
+
+Perform a full network scan on the target 192.168.1.0/24 using IPv6 and show detailed results:
+- python ng-netmap.py --target 192.168.1.0/24 --ports 22,80 --networkscan --ipv6 --showdetail
 
 ## Screenshot (Linux/Mac/Windows Compatible)
 
