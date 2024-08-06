@@ -1,3 +1,4 @@
+import textwrap
 import random
 import sys
 import ipaddress
@@ -17,15 +18,18 @@ from concurrent.futures import ThreadPoolExecutor
 import pycurl
 from io import BytesIO
 import socket
+import argparse
 import ssl
+import re
 
 init(autoreset=True)
+
 
 # Setup logging
 logging.basicConfig(filename='scan_log.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Load Nmap service probes with utf-8 encoding
-def load_nmap_service_probes(file_path):
+def load_probes(file_path):
     probes = []
     with open(file_path, 'r', encoding='utf-8') as f:
         probe = None
@@ -43,11 +47,18 @@ def load_nmap_service_probes(file_path):
             probes.append(probe)
     return probes
 
-probes = load_nmap_service_probes('nmap-service-probes')
+# Initialization of evasion_techniques
+evasion_techniques = []  # Add this line at the beginning of the script or main function
+
+# Define a placeholder value for VULNERS_API_KEY
+VULNERS_API_KEY = "5RGD73WQQXYEQ3158QVJBE61JS0LLAR4YM9C8UV2GS7YIGOF72793JP9IBT3PQYS"  # Add this line at the beginning of the script or wherever appropriate
+
+
+probes = load_probes('probes.ng')
 
 def extract_info_after_server(banner):
     match = re.search(r'Server:\s*(.*)', banner, re.IGNORECASE)
-    return match.group(1) if match else "Cannot find"
+    return match.group(1) if match else "Not Available"
 
 def banner_grabbing_with_nmap_probes(target_ip, target_port, retries=3, timeout=5):
     for _ in range(retries):
@@ -143,7 +154,32 @@ plugins = {
     "IP Option Fields Manipulation": "Use various IP options to diversify the packets.",
     "Decoy Packets": "Send decoy packets along with the real ones to confuse detection systems.",
     "Protocol Mix": "Mix different protocols in the scan to create noise.",
-    "Adaptive Timing": "Dynamically adjust the timing based on the network response."
+    "Adaptive Timing": "Dynamically adjust the timing based on the network response.",
+    "TCP Window Scan": "Uses varying TCP window sizes.",
+    "Fin Scan with Custom Payload": "Sends FIN packets with a custom payload.",
+    "Bogus Flag Combination Scan": "Uses non-standard flag combinations.",
+    "TCP RST Scan": "Sends TCP RST packets to scan.",
+    "TCP Christmas Tree Scan": "Sets the FIN, PSH, and URG flags.",
+    "Custom ICMP Data Scan": "Sends ICMP packets with custom data.",
+    "TCP Maimon Scan": "Uses FIN/ACK flags for scanning.",
+    "Custom UDP Payload Scan": "Sends UDP packets with custom payloads.",
+    "TCP SYN Flood Probe": "Sends a burst of SYN packets to probe.",
+    "IP Fragment Overlap Scan": "Sends overlapping IP fragments.",
+    "TCP Sequence Number Scan": "Uses predictable sequence numbers.",
+    "ICMP Timestamp Scan": "Sends ICMP timestamp requests.",
+    "TCP Flag Scan": "Uses custom TCP flags for scanning.",
+    "IP Record Route Option Scan": "Records the route of packets.",
+    "TCP PSH+FIN Scan": "Uses PSH and FIN flags.",
+    "ICMP Echo with Record Route": "Combines ICMP echo with record route options.",
+    "TCP Spoofed Connection Scan": "Establishes a spoofed TCP connection.",
+    "ICMP Echo with Timestamp": "Combines ICMP echo with timestamp options.",
+    "TCP Window Size Manipulation": "Varies the TCP window size.",
+    "TCP Invalid Flag Combination": "Uses invalid flag combinations.",
+    "TCP SYN with Custom Payload": "Sends SYN packets with custom payloads.",
+    "UDP Fragmentation Scan": "Uses fragmented UDP packets.",
+    "TCP MSS Option Manipulation": "Modifies the TCP MSS option.",
+    "ICMP Network Mask Request": "Sends ICMP network mask requests.",
+    "TCP ECN Probe": "Uses ECN flags in TCP packets."
 }
 
 def resolve_target(target):
@@ -161,26 +197,42 @@ def ipv4_to_ipv6(ipv4_address):
     return str(ipv6)
 
 def parse_arguments():
-    import argparse
-    parser = argparse.ArgumentParser(description='Custom TCP/IP Scanner')
-    parser.add_argument('--target', required=True, help='Target domain, IP address, or CIDR notation (comma-separated)')
-    parser.add_argument('--ports', required=True, help='Comma-separated list of target ports')
-    parser.add_argument('--threads', type=int, default=10, help='Number of threads to use for scanning')
-    parser.add_argument('--ipv6', action='store_true', help='Use IPv6 for scanning')
-    parser.add_argument('--showdetail', action='store_true', help='Show detailed scan results')
-    parser.add_argument('--showopenport', action='store_true', help='Show only open ports in the results')
-    parser.add_argument('--showfailed', action='store_true', help='Show failed scan plugins')
-    parser.add_argument('--showplugindetail', action='store_true', help='Show detailed plugin descriptions')
-    parser.add_argument('--networkscan', action='store_true', help='Scan entire network and detect segments')
-    parser.add_argument('--publicscan', action='store_true', help='Scan public-facing IP addresses')
-    parser.add_argument('--vulners', action='store_true', help='Use Vulners to find vulnerabilities')
+    parser = argparse.ArgumentParser(
+        description="Next Generation TCP/IP Scanner\n"
+                    "ng-networkscanner 2.0 (https://cyberzeus.pk)\n\n"
+                    "Usage: python ng-networkscanner.py [Scan Type(s)] [Options] {target specification}\n"
+                    "Use --help to get more information about the code\n"
+    )
+    
+    parser.add_argument('--target', required=True, help='Target domain, IP address, or CIDR notation (comma-separated).')
+    parser.add_argument('--ports', required=True, help='Comma-separated list of target ports.')
+    parser.add_argument('--threads', type=int, default=10, help='Number of threads to use for scanning.')
+    parser.add_argument('--ipv6', action='store_true', help='Use IPv6 for scanning.')
+    parser.add_argument('--showdetail', action='store_true', help='Show detailed scan results.')
+    parser.add_argument('--showfailed', action='store_true', help='Show failed scan plugins.')
+    parser.add_argument('--showopenport', action='store_true', help='Show only open ports in the results.')
+    parser.add_argument('--networkscan', action='store_true', help='Scan entire network and detect segments.')
+    parser.add_argument('--publicscan', action='store_true', help='Scan public-facing IP addresses.')
+    parser.add_argument('--vulners', action='store_true', help='Use Vulners to find vulnerabilities.')
+    parser.add_argument('--tcp', action='store_true', help='Use TCP-based scanning techniques.')
+    parser.add_argument('--syn', action='store_true', help='Use SYN-based scanning techniques.')
+    parser.add_argument('--icmp', action='store_true', help='Use ICMP-based scanning techniques.')
+    parser.add_argument('--udp', action='store_true', help='Use UDP-based scanning techniques.')
+    parser.add_argument('--custom', action='store_true', help='Use custom and advanced scanning techniques.')
+    parser.add_argument('--all', action='store_true', help='Use all available scanning techniques.')
+    parser.add_argument('--custom-payload', type=str, help='Use a custom payload for specific scans where applicable.')
+    parser.add_argument('--bogus-payload', action='store_true', help='Use bogus payloads for evasion techniques.')
+    parser.add_argument('--showplugindetail', action='store_true', help='Show plugin detail.')
+
     args = parser.parse_args()
     
     # Correctly parse targets and ports
     targets = args.target.split(',')
     target_ports = [int(port) for port in args.ports.split(',')]
     
-    return targets, target_ports, args.threads, args.ipv6, args.showdetail, args.showopenport, args.showfailed, args.showplugindetail, args.networkscan, args.publicscan, args.vulners
+    return (targets, target_ports, args.threads, args.ipv6, args.showdetail, args.showopenport, 
+            args.showfailed, args.networkscan, args.publicscan, args.vulners, args.tcp, args.syn, 
+            args.icmp, args.udp, args.custom, args.all, args.custom_payload, args.bogus_payload, args.showplugindetail)
 
 def is_ip_alive(target_ip):
     try:
@@ -281,27 +333,6 @@ def banner_grabbing(target_ip, target_port, retries=3, timeout=5):
                 logging.error(f"Error grabbing banner on port {target_port} using pycurl: {e}")
 
     return "\n".join(banners) if banners else "Cannot find"
-
-def perform_scan(scan_type, packet, target_ip, target_port, src_ip=None, use_vulners=False):
-    try:
-        logging.info(f"Performing {scan_type} on {target_ip}:{target_port}")
-        if src_ip:
-            packet[IP].src = src_ip
-        response = sr1(packet, timeout=1, verbose=False)
-        os_detected = get_os_from_response(response)
-        domain = get_domain_name(target_ip)
-        port_open = tcp_connect_scan(target_ip, target_port)
-        port_response = "Open" if port_open else "Closed"
-        scan_success = "Yes" if response else "No"
-        advanced_packet_response = response.summary() if response else "No response"
-        banner = banner_grabbing_with_nmap_probes(target_ip, target_port) if port_open else "Cannot find"
-        service = detect_service_from_banner(banner, probes)
-        vulnerabilities = get_vulnerabilities(banner) if use_vulners and port_open else "No vulnerabilities"
-        log_scan_result(scan_type, target_ip, target_port, domain, response, os_detected, port_response, scan_success, packet, response, banner, service, vulnerabilities)
-        return [scan_type, advanced_packet_response, os_detected, target_ip, domain, target_port, port_response, scan_success, packet.summary(), response.summary() if response else "No response", banner, service, vulnerabilities]
-    except Exception as e:
-        logging.error(f"Error performing scan {scan_type} on {target_ip}:{target_port}: {e}")
-        return [scan_type, "Error", "Unknown", target_ip, "Unknown", target_port, "Error", "No", "Error", "Error", "Cannot find", "Unknown", "No vulnerabilities"]
 
 def get_vulnerabilities(banner):
     try:
@@ -552,7 +583,176 @@ def adaptive_timing_scan(target_ip, target_port):
     response = sr1(packet, timeout=delay, verbose=False)
     return perform_scan("Adaptive Timing", packet, target_ip, target_port)
 
-def network_scan(targets, target_ports, max_threads, use_vulners):
+def tcp_window_scan(target_ip, target_port):
+    window_size = random.randint(1024, 65535)
+    packet = IP(dst=target_ip)/TCP(dport=target_port, window=window_size)
+    return perform_scan("TCP Window Scan", packet, target_ip, target_port)
+
+def fin_scan_with_custom_payload(target_ip, target_port):
+    payload = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=64))
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="F")/Raw(load=payload)
+    return perform_scan("Fin Scan with Custom Payload", packet, target_ip, target_port)
+
+def bogus_flag_combination_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="SFU")
+    return perform_scan("Bogus Flag Combination Scan", packet, target_ip, target_port)
+
+def tcp_rst_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="R")
+    return perform_scan("TCP RST Scan", packet, target_ip, target_port)
+
+def tcp_christmas_tree_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="FPU")
+    return perform_scan("TCP Christmas Tree Scan", packet, target_ip, target_port)
+
+def custom_icmp_data_scan(target_ip, target_port):
+    data = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=64))
+    packet = IP(dst=target_ip)/ICMP()/Raw(load=data)
+    return perform_scan("Custom ICMP Data Scan", packet, target_ip, target_port)
+
+def tcp_maimon_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="FA")
+    return perform_scan("TCP Maimon Scan", packet, target_ip, target_port)
+
+def custom_udp_payload_scan(target_ip, target_port):
+    payload = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=64))
+    packet = IP(dst=target_ip)/UDP(dport=target_port)/Raw(load=payload)
+    return perform_scan("Custom UDP Payload Scan", packet, target_ip, target_port)
+
+def tcp_syn_flood_probe(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="S")
+    send(packet, count=1000, verbose=False)
+    return perform_scan("TCP SYN Flood Probe", packet, target_ip, target_port)
+
+def ip_fragment_overlap_scan(target_ip, target_port):
+    packet1 = IP(dst=target_ip, flags="MF", frag=0)/TCP(dport=target_port, flags="S")
+    packet2 = IP(dst=target_ip, flags="MF", frag=1)/Raw(load="X"*24)
+    send(packet1, verbose=False)
+    send(packet2, verbose=False)
+    return perform_scan("IP Fragment Overlap Scan", packet1, target_ip, target_port)
+
+def tcp_sequence_number_scan(target_ip, target_port):
+    seq_num = random.randint(1000, 1000000)
+    packet = IP(dst=target_ip)/TCP(dport=target_port, seq=seq_num)
+    return perform_scan("TCP Sequence Number Scan", packet, target_ip, target_port)
+
+def icmp_timestamp_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/ICMP(type=13)
+    return perform_scan("ICMP Timestamp Scan", packet, target_ip, target_port)
+
+def tcp_flag_scan(target_ip, target_port):
+    flags = random.choice(["S", "A", "F", "R", "P", "U"])
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags=flags)
+    return perform_scan("TCP Flag Scan", packet, target_ip, target_port)
+
+def bogus_payload_scan(target_ip, target_port):
+    bogus_payload = b'\x00\xff' * 32  # Example of a bogus payload
+    packet = IP(dst=target_ip)/TCP(dport=target_port)/Raw(load=bogus_payload)
+    return perform_scan("Bogus Payload Scan", packet, target_ip, target_port)
+
+def ip_record_route_option_scan(target_ip, target_port):
+    packet = IP(dst=target_ip, options=[IPOption('\x07\x27\x08\x00\x00\x00\x00\x00\x00\x00')])/TCP(dport=target_port)
+    return perform_scan("IP Record Route Option Scan", packet, target_ip, target_port)
+
+def tcp_psh_fin_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="PF")
+    return perform_scan("TCP PSH+FIN Scan", packet, target_ip, target_port)
+
+def icmp_echo_with_record_route_scan(target_ip, target_port):
+    packet = IP(dst=target_ip, options=[IPOption('\x07\x27\x08\x00\x00\x00\x00\x00\x00\x00')])/ICMP()
+    return perform_scan("ICMP Echo with Record Route", packet, target_ip, target_port)
+
+def tcp_spoofed_connection_scan(target_ip, target_port):
+    src_ip = f"{random.randint(1, 254)}.{random.randint(1, 254)}.{random.randint(1, 254)}.{random.randint(1, 254)}"
+    packet = IP(src=src_ip, dst=target_ip)/TCP(dport=target_port, flags="S")
+    return perform_scan("TCP Spoofed Connection Scan", packet, target_ip, target_port, src_ip=src_ip)
+
+def icmp_echo_with_timestamp_scan(target_ip, target_port):
+    packet = IP(dst=target_ip, options=[IPOption('\x44\x02\x00\x00\x00\x00\x00\x00')])/ICMP(type=8)
+    return perform_scan("ICMP Echo with Timestamp", packet, target_ip, target_port)
+
+def tcp_window_size_manipulation_scan(target_ip, target_port):
+    window_size = random.randint(1024, 65535)
+    packet = IP(dst=target_ip)/TCP(dport=target_port, window=window_size)
+    return perform_scan("TCP Window Size Manipulation", packet, target_ip, target_port)
+
+def tcp_invalid_flag_combination_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="FSU")
+    return perform_scan("TCP Invalid Flag Combination", packet, target_ip, target_port)
+
+def tcp_syn_with_custom_payload_scan(target_ip, target_port):
+    payload = ''.join(random.choices('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', k=64))
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="S")/Raw(load=payload)
+    return perform_scan("TCP SYN with Custom Payload", packet, target_ip, target_port)
+
+def udp_fragmentation_scan(target_ip, target_port):
+    packet = IP(dst=target_ip, flags="MF")/UDP(dport=target_port)/("X"*60000)
+    return perform_scan("UDP Fragmentation Scan", packet, target_ip, target_port)
+
+def tcp_mss_option_manipulation_scan(target_ip, target_port):
+    mss = random.randint(500, 1460)
+    packet = IP(dst=target_ip)/TCP(dport=target_port, options=[('MSS', mss)])
+    return perform_scan("TCP MSS Option Manipulation", packet, target_ip, target_port)
+
+def icmp_network_mask_request_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/ICMP(type=17)
+    return perform_scan("ICMP Network Mask Request", packet, target_ip, target_port)
+
+def tcp_ecn_probe_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="S", options=[('ECN', 0)])
+    return perform_scan("TCP ECN Probe", packet, target_ip, target_port)
+
+# Placeholder for tcp_scan
+def tcp_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="S")
+    return perform_scan("TCP Scan", packet, target_ip, target_port)
+
+# Placeholder for syn_scan
+def syn_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="S")
+    return perform_scan("SYN Scan", packet, target_ip, target_port)
+
+# Placeholder for icmp_scan
+def icmp_scan(target_ip):
+    packet = IP(dst=target_ip)/ICMP()
+    return perform_scan("ICMP Scan", packet, target_ip, 0)  # ICMP doesn't use ports
+
+# Placeholder for udp_scan
+def udp_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/UDP(dport=target_port)
+    return perform_scan("UDP Scan", packet, target_ip, target_port)
+
+# Placeholder for custom_scan
+def custom_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="F")
+    return perform_scan("Custom Scan", packet, target_ip, target_port)
+
+# Placeholder for tcp_scan
+def tcp_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="S")
+    return perform_scan("TCP Scan", packet, target_ip, target_port)
+
+# Placeholder for syn_scan
+def syn_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="S")
+    return perform_scan("SYN Scan", packet, target_ip, target_port)
+
+# Placeholder for icmp_scan
+def icmp_scan(target_ip):
+    packet = IP(dst=target_ip)/ICMP()
+    return perform_scan("ICMP Scan", packet, target_ip, 0)  # ICMP doesn't use ports
+
+# Placeholder for udp_scan
+def udp_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/UDP(dport=target_port)
+    return perform_scan("UDP Scan", packet, target_ip, target_port)
+
+# Placeholder for custom_scan
+def custom_scan(target_ip, target_port):
+    packet = IP(dst=target_ip)/TCP(dport=target_port, flags="F")
+    return perform_scan("Custom Scan", packet, target_ip, target_port)
+
+def network_scan(targets, target_ports, max_threads, use_vulners, bogus_payload, all):
     scan_results = []
     with ThreadPoolExecutor(max_workers=max_threads) as executor:
         futures = []
@@ -566,8 +766,47 @@ def network_scan(targets, target_ports, max_threads, use_vulners):
                 futures.append(executor.submit(decoy_packets_scan, target, port))
                 futures.append(executor.submit(protocol_mix_scan, target, port))
                 futures.append(executor.submit(adaptive_timing_scan, target, port))
-        for future in futures:
-            scan_results.append(future.result())
+                futures.append(executor.submit(tcp_window_scan, target, port))
+                futures.append(executor.submit(fin_scan_with_custom_payload, target, port))
+                futures.append(executor.submit(bogus_flag_combination_scan, target, port))
+                futures.append(executor.submit(tcp_rst_scan, target, port))
+                futures.append(executor.submit(tcp_christmas_tree_scan, target, port))
+                futures.append(executor.submit(custom_icmp_data_scan, target, port))
+                futures.append(executor.submit(tcp_maimon_scan, target, port))
+                futures.append(executor.submit(custom_udp_payload_scan, target, port))
+                futures.append(executor.submit(tcp_syn_flood_probe, target, port))
+                futures.append(executor.submit(ip_fragment_overlap_scan, target, port))
+                futures.append(executor.submit(tcp_sequence_number_scan, target, port))
+                futures.append(executor.submit(icmp_timestamp_scan, target, port))
+                futures.append(executor.submit(tcp_flag_scan, target, port))
+                futures.append(executor.submit(ip_record_route_option_scan, target, port))
+                futures.append(executor.submit(tcp_psh_fin_scan, target, port))
+                futures.append(executor.submit(icmp_echo_with_record_route_scan, target, port))
+                futures.append(executor.submit(tcp_spoofed_connection_scan, target, port))
+                futures.append(executor.submit(icmp_echo_with_timestamp_scan, target, port))
+                futures.append(executor.submit(tcp_window_size_manipulation_scan, target, port))
+                futures.append(executor.submit(tcp_invalid_flag_combination_scan, target, port))
+                futures.append(executor.submit(tcp_syn_with_custom_payload_scan, target, port))
+                futures.append(executor.submit(udp_fragmentation_scan, target, port))
+                futures.append(executor.submit(tcp_mss_option_manipulation_scan, target, port))
+                futures.append(executor.submit(icmp_network_mask_request_scan, target, port))
+                futures.append(executor.submit(tcp_ecn_probe_scan, target, port))
+                # Add bogus payload scan if applicable
+                if bogus_payload or all:
+                    futures.append(executor.submit(bogus_payload_scan, target, port))
+
+                # Collect evasion techniques used
+                evasion_techniques.append(["Randomized Source IP and Port", f"Target: {target}, Port: {port}"])
+                evasion_techniques.append(["Randomized Payloads", f"Target: {target}, Port: {port}"])
+                evasion_techniques.append(["Variable Packet Sizes", f"Target: {target}, Port: {port}"])
+                evasion_techniques.append(["TCP Timestamp Manipulation", f"Target: {target}, Port: {port}"])
+                evasion_techniques.append(["IP Option Fields Manipulation", f"Target: {target}, Port: {port}"])
+                evasion_techniques.append(["Decoy Packets", f"Target: {target}, Port: {port}"])
+                evasion_techniques.append(["Protocol Mix", f"Target: {target}, Port: {port}"])
+                evasion_techniques.append(["Adaptive Timing", f"Target: {target}, Port: {port}"])
+
+            for future in futures:
+                scan_results.append(future.result())
     return scan_results
 
 def print_summary(successful_plugins, open_ports_summary, failed_plugins, show_failed, show_plugin_detail, evasion_techniques, ip_status):
@@ -616,16 +855,18 @@ def print_summary(successful_plugins, open_ports_summary, failed_plugins, show_f
     print(tabulate(ip_status, headers=ip_status_headers, tablefmt="grid"))
 
 def main():
-    targets, target_ports, max_threads, use_ipv6, show_detail, show_open_port, show_failed, show_plugin_detail, networkscan, publicscan, use_vulners = parse_arguments()
-    
+    (targets, target_ports, max_threads, use_ipv6, show_detail, show_open_port, show_failed, 
+     networkscan, publicscan, use_vulners, tcp, syn, icmp, udp, custom, all, custom_payload, bogus_payload, show_plugin_detail) = parse_arguments()
+
+    evasion_techniques = []  # Initialization within main function
+
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"{timestamp} - Number of targets entered: {len(targets)}")
     print(f"{timestamp} - Targets: {', '.join(targets)}")
     print(f"{timestamp} - Number of ports entered: {len(target_ports)}")
     print(f"{timestamp} - Enumerating Ports: {', '.join(map(str, target_ports))}")
-    
+
     all_scan_results = []
-    evasion_techniques = []
     ip_status = []
 
     for target in targets:
@@ -644,8 +885,9 @@ def main():
                 target_ipv6 = target_ip
             except ipaddress.AddressValueError:
                 target_ipv6 = ipv4_to_ipv6(target_ip)
-    
+        
         logging.info(f"Starting scans on {target_ip} ({target})")
+        
         if is_ip_alive(target_ip):
             logging.info(f"Target {target_ip} is alive")
             ip_status.append([target_ip, "Online", segment, firewall_detected])
@@ -654,12 +896,26 @@ def main():
                 futures = []
                 for port in target_ports:
                     print(f"{Fore.YELLOW}Scanning port {port} on {target_ip} ({target})...{Style.RESET_ALL}")
+                    
+                    if tcp or all:
+                        futures.append(executor.submit(tcp_scan, target_ip, port))
+                    if syn or all:
+                        futures.append(executor.submit(syn_scan, target_ip, port))
+                    if icmp or all:
+                        futures.append(executor.submit(icmp_scan, target_ip))
+                    if udp or all:
+                        futures.append(executor.submit(udp_scan, target_ip, port))
+                    if custom or all:
+                        futures.append(executor.submit(custom_scan, target_ip, port))
+
                     futures.append(executor.submit(inverse_mapping_scan, target_ip, port))
                     futures.append(executor.submit(bad_tcp_checksum_scan, target_ip, port))
                     futures.append(executor.submit(ack_tunneling_scan, target_ip, port))
+                    
                     if ':' in target_ipv6:
                         futures.append(executor.submit(ipv6_extension_header_scanning, target_ipv6, port))
                         futures.append(executor.submit(flow_label_scanning_ipv6, target_ipv6, port))
+                    
                     futures.append(executor.submit(flow_label_scanning_ipv4, target_ip, port))
                     futures.append(executor.submit(fragmented_icmp_scanning, target_ip, port))
                     futures.append(executor.submit(covert_channel_scanning, target_ip, port))
@@ -698,7 +954,7 @@ def main():
 
                 for future in futures:
                     scan_results.append(future.result())
-    
+
             scan_results = eliminate_false_positives(scan_results)
             print_scan_results(scan_results, show_detail, show_open_port, show_failed)
             all_scan_results.extend(scan_results)
@@ -708,9 +964,9 @@ def main():
             ip_status.append([target_ip, "Offline", segment, firewall_detected])
     
     if networkscan or publicscan:
-        network_scan_results = network_scan(targets, target_ports, max_threads, use_vulners)
+        network_scan_results = network_scan(targets, target_ports, max_threads, use_vulners, bogus_payload, all)
         all_scan_results.extend(network_scan_results)
-    
+
     open_ports_summary = {}
     successful_plugins = []
     failed_plugins = []
@@ -724,7 +980,7 @@ def main():
             successful_plugins.append(result[0])
         else:
             failed_plugins.append(result[0])
-    
+
     print_summary(successful_plugins, open_ports_summary, failed_plugins, show_failed, show_plugin_detail, evasion_techniques, ip_status)
 
 if __name__ == "__main__":
