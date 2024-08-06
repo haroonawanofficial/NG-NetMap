@@ -1,5 +1,5 @@
 
-# NG (Next Generation) Network Scanner
+# NG (Next Generation) Network Mapper
 
 Next Generation Port Scan is advanced scanner that identifies open ports and gather information about target hosts using TCP/IP stack and RFC designs to help us bypass firewalls and truly understand, if port is closed or open. It supports both IPv4 and IPv6, and includes features such as logging, multi-threading, and detailed scan results.
 
@@ -16,7 +16,7 @@ Next Generation Port Scan is advanced scanner that identifies open ports and gat
 
 
 
-## Why This is a Next-Generation Network Scanner
+## Why This is a Next-Generation Network Mapper
 
 This scanner incorporates cutting-edge scanning methods that go beyond traditional port scanning. It includes innovative techniques like:
 
