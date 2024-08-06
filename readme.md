@@ -226,35 +226,55 @@ python ng-netmap.py --target testphp.vulnweb.com --ports 80 --vulners --publicsc
 ```
 
 ## Advance Usages
-- Scan the target 192.168.1.1 on ports 22 and 80 using TCP scan with 10 threads
+- Scan the target using TCP scan with threads
+```bash
 python ng-netmap.py --target 192.168.1.1 --ports 22,80 --tcp
+```
 
-- Scan the target 192.168.1.1 on ports 22 and 80 using SYN scan with 10 threads
+- Scan the target using SYN scan with threads
+```bash
 python ng-netmap.py --target 192.168.1.1 --ports 22,80 --syn
+```
 
-- Scan the target 192.168.1.1 on ports 22 and 80 using UDP scan with 10 threads
+- Scan the target using UDP scan with threads
+```bash
 python ng-netmap.py --target 192.168.1.1 --ports 22,80 --udp
+```
 
-- Scan the target 192.168.1.1 on ports 22 and 80 using ICMP scan with 10 threads
+- Scan the target using ICMP scan with threads
+```bash
 python ng-netmap.py --target 192.168.1.1 --ports 22,80 --icmp
+```
 
-Scan the target 192.168.1.1 on ports 22 and 80 using all available scanning techniques:
+- Scan the target using SYN scan with threads using all techniques:
+```bash
 - python ng-netmap.py --target 192.168.1.1 --ports 22,80 --all
+```
 
-Enable custom scanning techniques and use a specific payload.
-- python ng-netmap.py --target 192.168.1.1 --ports 80 --custom --custom-payload "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n"
+- Enable custom scanning techniques and use a specific payload.
+```bash
+python ng-netmap.py --target 192.168.1.1 --ports 80 --custom --custom-payload "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n"
+```
 
-Enable custom scanning techniques.
-- python ng-netmap.py --target 192.168.1.1 --ports 80 --custom
+- Enable custom scanning techniques.
+```bash
+python ng-netmap.py --target 192.168.1.1 --ports 80 --custom
+```
 
-Enable custom scanning techniques and use bogus payloads for evasion.
-- python ng-netmap.py --target 192.168.1.1 --ports 22,80 --custom-payload "example payload" --bogus-payload
+- Enable custom scanning techniques and use bogus payloads for evasion.
+```bash
+python ng-netmap.py --target 192.168.1.1 --ports 22,80 --custom-payload "example payload" --bogus-payload
+```
 
-Enable custom scanning techniques, use a specific payload, and include bogus payloads for evasion.
-- python ng-netmap.py --target 192.168.1.1 --ports 80 --custom --custom-payload "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n"
+- Enable custom scanning techniques, use a specific payload, and include bogus payloads for evasion.
+```bash
+python ng-netmap.py --target 192.168.1.1 --ports 80 --custom --custom-payload "GET / HTTP/1.1\r\nHost: example.com\r\n\r\n"
+```
 
-Perform a full network scan on the target 192.168.1.0/24 using IPv6 and show detailed results:
-- python ng-netmap.py --target 192.168.1.0/24 --ports 22,80 --networkscan --ipv6 --showdetail
+- Perform a full network scan on the target 192.168.1.0/24 using IPv6 and show detailed results:
+```bash
+python ng-netmap.py --target 192.168.1.0/24 --ports 22,80 --networkscan --ipv6 --showdetail
+```
 
 ## Screenshot (Linux/Mac/Windows Compatible)
 
